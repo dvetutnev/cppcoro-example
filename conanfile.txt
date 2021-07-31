@@ -1,8 +1,9 @@
 [requires]
-gtest/cci.20210126
+andreasbuhr-cppcoro/cci.20210113
+gtest/1.11.0
 
 [options]
 
 [generators]
-cmake_find_package
+cmake_find_package_multi
 

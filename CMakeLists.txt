@@ -1,9 +1,9 @@
-# Project name
+# Training example for cppcoro https://github.com/andreasbuhr/cppcoro
 # Dmitriy Vetutnev 2021
 
 cmake_minimum_required(VERSION 3.14)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_BINARY_DIR})
@@ -22,6 +22,12 @@ conan_cmake_install(
     BUILD missing
     SETTINGS ${settings})
 
+
+add_compile_definitions(
+    CPPCORO_COMPILER_SUPPORTS_SYMMETRIC_TRANSFER=1
+    __cpp_impl_coroutine=true)
+
+find_package(cppcoro CONFIG REQUIRED)
 find_package(GTest REQUIRED)
 
 include_directories(src)

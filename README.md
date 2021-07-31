@@ -1,10 +1,9 @@
-# template-cpp-cmake-conan
-Template C++ project with CMake and Conan
+# cppcoro-example
 
 
 # Requirements
 
- - C++17 complier
+ - C++20 complier
  - CMake
  - Conan
 
