@@ -28,6 +28,8 @@ add_compile_definitions(
     __cpp_impl_coroutine=true)
 
 find_package(cppcoro CONFIG REQUIRED)
+find_package(uvw REQUIRED)
+find_package(date REQUIRED)
 find_package(GTest REQUIRED)
 
 include_directories(src)
