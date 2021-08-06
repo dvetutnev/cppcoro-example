@@ -38,10 +38,13 @@ struct Awaiter
     constexpr bool await_ready() const noexcept { return false; }
 
     void await_suspend(std::coroutine_handle<> handle) {
-        auto timer = loop->resource<uvw::TimerHandle>();
-        timer->once<uvw::TimerEvent>([handle](const auto&, const auto&) {
+        std::shared_ptr<uvw::TimerHandle> timer = loop->resource<uvw::TimerHandle>();
+
+        timer->once<uvw::TimerEvent>([handle](uvw::TimerEvent& event, uvw::TimerHandle& timer) {
             handle.resume();
+            timer.close();
         });
+
         timer->start(delay, 0ms);
     }
 
