@@ -29,10 +29,18 @@ add_compile_definitions(
 
 find_package(cppcoro CONFIG REQUIRED)
 find_package(uvw REQUIRED)
-find_package(date REQUIRED)
+find_package(mariadb-connector-c REQUIRED)
 find_package(GTest REQUIRED)
 
 include_directories(src)
+
+add_library(${PROJECT_NAME}
+    src/mariadb_coro.cpp)
+
+target_link_libraries(${PROJECT_NAME}
+    cppcoro::cppcoro
+    uvw::uvw
+    mariadb-connector-c::mariadb-connector-c)
 
 enable_testing()
 

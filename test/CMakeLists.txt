@@ -1,10 +1,9 @@
 add_executable(tests
-    test_dummy.cpp)
+    test_dummy.cpp
+    test_mariadb_coro.cpp)
 
 target_link_libraries(tests
-    cppcoro::cppcoro
-    uvw::uvw
-    date::date
+    ${PROJECT_NAME}
     GTest::gmock_main)
 
 add_test(NAME tests COMMAND tests)
