@@ -1,20 +1,12 @@
+#include "run_loop.h"
+
 #include <cppcoro/task.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/when_all.hpp>
 #include <cppcoro/when_all_ready.hpp>
 
-#include <uvw.hpp>
+#include <uvw/timer.h>
 #include <gtest/gtest.h>
-
-
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
 
 
 using namespace std::chrono_literals;
@@ -69,11 +61,6 @@ struct Awaiter
 
 cppcoro::task<> timer(std::shared_ptr<uvw::Loop> loop, std::chrono::milliseconds delay) {
     co_await Awaiter{loop, delay};
-    co_return;
-}
-
-inline cppcoro::task<> run_loop(std::shared_ptr<uvw::Loop> loop) {
-    loop->run();
     co_return;
 }
 
