@@ -15,7 +15,7 @@ using std::suspend_never;
 #endif
 
 
-inline cppcoro::task<> run_loop(std::shared_ptr<uvw::Loop> loop = uvw::Loop::getDefault()) {
+inline cppcoro::task<> run_loop(std::shared_ptr<uvw::Loop> loop) {
     loop->run();
     co_return;
 }
