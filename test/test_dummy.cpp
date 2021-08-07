@@ -40,13 +40,13 @@ namespace {
 
 struct Awaiter
 {
-    std::shared_ptr<uvw::Loop> loop;
+    uvw::Loop& loop;
     std::chrono::milliseconds delay;
 
     constexpr bool await_ready() const noexcept { return false; }
 
     void await_suspend(std::coroutine_handle<> handle) {
-        std::shared_ptr<uvw::TimerHandle> timer = loop->resource<uvw::TimerHandle>();
+        std::shared_ptr<uvw::TimerHandle> timer = loop.resource<uvw::TimerHandle>();
 
         timer->once<uvw::TimerEvent>([handle](uvw::TimerEvent& event, uvw::TimerHandle& timer) {
             handle.resume();
@@ -59,7 +59,7 @@ struct Awaiter
     constexpr void await_resume() const noexcept {}
 };
 
-cppcoro::task<> timer(std::shared_ptr<uvw::Loop> loop, std::chrono::milliseconds delay) {
+cppcoro::task<> timer(uvw::Loop& loop, std::chrono::milliseconds delay) {
     co_await Awaiter{loop, delay};
     co_return;
 }
@@ -73,8 +73,8 @@ TEST(Timer, _) {
     auto start = std::chrono::system_clock::now();
 
     cppcoro::sync_wait(cppcoro::when_all_ready(
-                           timer(loop, 150ms),
-                           run_loop(loop)));
+                           timer(*loop, 150ms),
+                           run_loop(*loop)));
 
     auto duration = std::chrono::system_clock::now() - start;
 
@@ -87,8 +87,8 @@ TEST(Timer, _2) {
     auto start = std::chrono::system_clock::now();
 
     cppcoro::sync_wait(cppcoro::when_all_ready(
-                           timer(loop, 150ms),
-                           run_loop(loop)));
+                           timer(*loop, 150ms),
+                           run_loop(*loop)));
 
     auto duration = std::chrono::system_clock::now() - start;
 
