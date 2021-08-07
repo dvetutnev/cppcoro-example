@@ -1,11 +1,21 @@
-#include "run_loop.h"
-
 #include <cppcoro/task.hpp>
 #include <cppcoro/sync_wait.hpp>
+#include <cppcoro/when_all.hpp>
 #include <cppcoro/when_all_ready.hpp>
 
 #include <uvw.hpp>
 #include <gtest/gtest.h>
+
+
+#if defined(__clang__)
+namespace std::experimental {
+using std::coroutine_traits;
+using std::coroutine_handle;
+using std::suspend_always;
+using std::suspend_never;
+}
+#endif
+
 
 using namespace std::chrono_literals;
 
@@ -38,8 +48,8 @@ namespace {
 
 struct Awaiter
 {
+    std::shared_ptr<uvw::Loop> loop;
     std::chrono::milliseconds delay;
-    std::shared_ptr<uvw::Loop> loop = uvw::Loop::getDefault();
 
     constexpr bool await_ready() const noexcept { return false; }
 
@@ -57,8 +67,13 @@ struct Awaiter
     constexpr void await_resume() const noexcept {}
 };
 
-cppcoro::task<> timer(std::chrono::milliseconds delay) {
-    co_await Awaiter{delay};
+cppcoro::task<> timer(std::shared_ptr<uvw::Loop> loop, std::chrono::milliseconds delay) {
+    co_await Awaiter{loop, delay};
+    co_return;
+}
+
+inline cppcoro::task<> run_loop(std::shared_ptr<uvw::Loop> loop) {
+    loop->run();
     co_return;
 }
 
@@ -67,11 +82,26 @@ cppcoro::task<> timer(std::chrono::milliseconds delay) {
 
 
 TEST(Timer, _) {
+    auto loop = uvw::Loop::create();
     auto start = std::chrono::system_clock::now();
 
     cppcoro::sync_wait(cppcoro::when_all_ready(
-                           timer(150ms),
-                           run_loop()));
+                           timer(loop, 150ms),
+                           run_loop(loop)));
+
+    auto duration = std::chrono::system_clock::now() - start;
+
+    EXPECT_TRUE(duration >= 100ms);
+    EXPECT_TRUE(duration <= 200ms);
+}
+
+TEST(Timer, _2) {
+    auto loop = uvw::Loop::create();
+    auto start = std::chrono::system_clock::now();
+
+    cppcoro::sync_wait(cppcoro::when_all_ready(
+                           timer(loop, 150ms),
+                           run_loop(loop)));
 
     auto duration = std::chrono::system_clock::now() - start;
 
