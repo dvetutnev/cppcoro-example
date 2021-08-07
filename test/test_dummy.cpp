@@ -1,20 +1,11 @@
+#include "run_loop.h"
+
 #include <cppcoro/task.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/when_all_ready.hpp>
 
 #include <uvw.hpp>
 #include <gtest/gtest.h>
-
-
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
-
 
 using namespace std::chrono_literals;
 
@@ -28,6 +19,21 @@ TEST(Dummy, _) {
     int result = cppcoro::sync_wait(coro);
     EXPECT_EQ(result, 42);
 }
+
+
+TEST(Dummy, _2) {
+    auto coro = create_coro(21);
+    auto coro2 = create_coro(22);
+
+    auto all = cppcoro::when_all(std::move(coro), std::move(coro2));
+    auto [a, b]  = cppcoro::sync_wait(all);
+
+    EXPECT_EQ(a, 42);
+    EXPECT_EQ(b, 44);
+}
+
+
+namespace {
 
 
 struct Awaiter
@@ -56,10 +62,9 @@ cppcoro::task<> timer(std::chrono::milliseconds delay) {
     co_return;
 }
 
-cppcoro::task<> run_loop() {
-    uvw::Loop::getDefault()->run();
-    co_return;
-}
+
+} // Anonymous namespace
+
 
 TEST(Timer, _) {
     auto start = std::chrono::system_clock::now();
