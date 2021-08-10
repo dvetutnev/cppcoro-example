@@ -35,7 +35,8 @@ find_package(GTest REQUIRED)
 include_directories(src)
 
 add_library(${PROJECT_NAME}
-    src/mariadb_coro.cpp)
+    src/mariadb_coro.cpp
+    src/tcp_coro.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     cppcoro::cppcoro
