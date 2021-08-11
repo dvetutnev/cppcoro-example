@@ -3,6 +3,8 @@
 #include <uvw/loop.h>
 #include <uvw/tcp.h>
 
+#include <cppcoro/coroutine.hpp>
+
 
 class TCPCoro
 {
@@ -25,5 +27,36 @@ public:
 
 private:
 
-    std::shared_ptr<uvw::TCPHandle> _handle;
+    std::shared_ptr<uvw::TCPHandle> _tcpHandle;
+};
+
+
+class TCPCoro::AwaiterConnect
+{
+public:
+
+    AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port)
+        :
+          _tcpHandle{tcpHandle},
+          _ip{ip},
+          _port{port}
+    {}
+
+    constexpr bool await_ready() const noexcept { return false; }
+
+    void await_suspend(std::coroutine_handle<> coro) {
+        _tcpHandle.once<uvw::ConnectEvent>([coro](const auto&, const auto&) {
+            coro.resume();
+        });
+        _tcpHandle.connect(_ip, _port);
+    }
+
+    constexpr void await_resume() const noexcept {}
+
+
+private:
+
+    uvw::TCPHandle& _tcpHandle;
+    const std::string _ip;
+    const unsigned int _port;
 };

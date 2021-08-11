@@ -3,11 +3,16 @@
 
 TCPCoro::TCPCoro(uvw::Loop& loop)
     :
-      _handle{loop.resource<uvw::TCPHandle>()}
+      _tcpHandle{loop.resource<uvw::TCPHandle>()}
 {}
 
 
 TCPCoro::~TCPCoro() {
-    _handle->clear(); // Remove event listeners
-    _handle->close();
+    _tcpHandle->clear(); // Remove event listeners
+    _tcpHandle->close();
+}
+
+
+TCPCoro::AwaiterConnect TCPCoro::connect(std::string_view ip, unsigned int port) {
+    return AwaiterConnect{*_tcpHandle, ip, port};
 }

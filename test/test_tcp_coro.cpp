@@ -11,8 +11,9 @@ TEST(TCPCoro, connect) {
     auto listener = loop->resource<uvw::TCPHandle>();
 
     bool isConnected = false;
-    auto onConnect = [&](const auto&, const auto&) {
+    auto onConnect = [&](const auto&, uvw::TCPHandle& handle) {
         isConnected = true;
+        handle.close();
     };
     listener->once<uvw::ListenEvent>(onConnect);
 
