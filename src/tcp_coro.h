@@ -60,3 +60,21 @@ private:
 
     std::exception_ptr _exception;
 };
+
+
+class TCPCoro::AwaiterShutdown
+{
+public:
+
+    AwaiterShutdown(uvw::TCPHandle& tcpHandle);
+
+    constexpr bool await_ready() const noexcept { return false; }
+    void await_suspend(std::coroutine_handle<>);
+    void await_resume() const;
+
+private:
+
+    uvw::TCPHandle& _tcpHandle;
+
+    std::exception_ptr _exception;
+};

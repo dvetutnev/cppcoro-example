@@ -18,6 +18,10 @@ TCPCoro::AwaiterConnect TCPCoro::connect(std::string_view ip, unsigned int port)
 }
 
 
+TCPCoro::AwaiterShutdown TCPCoro::shutdown() {
+    return AwaiterShutdown{*_tcpHandle};
+}
+
 
 
 TCPCoro::AwaiterConnect::AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port)
@@ -43,6 +47,34 @@ void TCPCoro::AwaiterConnect::await_suspend(std::coroutine_handle<> coro) {
 
 
 void TCPCoro::AwaiterConnect::await_resume() const {
+    if (_exception) {
+        std::rethrow_exception(_exception);
+    }
+}
+
+
+
+TCPCoro::AwaiterShutdown::AwaiterShutdown(uvw::TCPHandle& tcpHandle)
+    :
+      _tcpHandle{tcpHandle}
+{}
+
+
+void TCPCoro::AwaiterShutdown::await_suspend(std::coroutine_handle<> coro) {
+    _tcpHandle.once<uvw::ShutdownEvent>([coro](const auto&, const auto&) {
+        coro.resume();
+    });
+
+    _tcpHandle.once<uvw::ErrorEvent>([this, coro](const uvw::ErrorEvent& ev, const auto&) {
+        _exception = std::make_exception_ptr(TCPCoroException{ev});
+        coro.resume();
+    });
+
+    _tcpHandle.shutdown();
+}
+
+
+void TCPCoro::AwaiterShutdown::await_resume() const {
     if (_exception) {
         std::rethrow_exception(_exception);
     }
