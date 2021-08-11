@@ -6,6 +6,17 @@
 #include <cppcoro/coroutine.hpp>
 
 
+class TCPCoroException : public std::exception
+{
+public:
+    TCPCoroException(const uvw::ErrorEvent& errorEvent) : _errorEvent{errorEvent} {}
+    const char* what() const noexcept override { return _errorEvent.what(); }
+
+private:
+    const uvw::ErrorEvent _errorEvent;
+};
+
+
 class TCPCoro
 {
 public:
@@ -39,11 +50,13 @@ public:
 
     constexpr bool await_ready() const noexcept { return false; }
     void await_suspend(std::coroutine_handle<>);
-    constexpr void await_resume() const noexcept {}
+    void await_resume() const;
 
 private:
 
     uvw::TCPHandle& _tcpHandle;
     const std::string _ip;
     const unsigned int _port;
+
+    std::exception_ptr _exception;
 };

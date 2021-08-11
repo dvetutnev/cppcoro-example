@@ -19,6 +19,7 @@ TCPCoro::AwaiterConnect TCPCoro::connect(std::string_view ip, unsigned int port)
 
 
 
+
 TCPCoro::AwaiterConnect::AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port)
     :
       _tcpHandle{tcpHandle},
@@ -31,5 +32,18 @@ void TCPCoro::AwaiterConnect::await_suspend(std::coroutine_handle<> coro) {
     _tcpHandle.once<uvw::ConnectEvent>([coro](const auto&, const auto&) {
         coro.resume();
     });
+
+    _tcpHandle.once<uvw::ErrorEvent>([this, coro](const uvw::ErrorEvent& ev, const auto&) {
+        _exception = std::make_exception_ptr(TCPCoroException{ev});
+        coro.resume();
+    });
+
     _tcpHandle.connect(_ip, _port);
+}
+
+
+void TCPCoro::AwaiterConnect::await_resume() const {
+    if (_exception) {
+        std::rethrow_exception(_exception);
+    }
 }
