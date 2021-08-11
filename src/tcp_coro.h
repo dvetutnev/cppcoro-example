@@ -35,24 +35,11 @@ class TCPCoro::AwaiterConnect
 {
 public:
 
-    AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port)
-        :
-          _tcpHandle{tcpHandle},
-          _ip{ip},
-          _port{port}
-    {}
+    AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port);
 
     constexpr bool await_ready() const noexcept { return false; }
-
-    void await_suspend(std::coroutine_handle<> coro) {
-        _tcpHandle.once<uvw::ConnectEvent>([coro](const auto&, const auto&) {
-            coro.resume();
-        });
-        _tcpHandle.connect(_ip, _port);
-    }
-
+    void await_suspend(std::coroutine_handle<>);
     constexpr void await_resume() const noexcept {}
-
 
 private:
 
