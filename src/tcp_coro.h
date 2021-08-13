@@ -34,7 +34,7 @@ public:
     AwaiterRead read(); // std::tuple<std::unique_ptr<char>, std::size_t> data = co_wait socket.read();
 
     class AwaiterWrite;
-    AwaiterWrite write(std::unique_ptr<char> data, unsigned int length);
+    AwaiterWrite write(std::unique_ptr<char[]> data, std::size_t length);
 
 private:
 
@@ -95,5 +95,25 @@ private:
     uvw::TCPHandle& _tcpHandle;
 
     uvw::DataEvent _event;
+    std::exception_ptr _exception;
+};
+
+
+class TCPCoro::AwaiterWrite
+{
+public:
+
+    AwaiterWrite(uvw::TCPHandle& tcpHandle, std::unique_ptr<char[]> data, std::size_t length);
+
+    constexpr bool await_ready() const noexcept { return false; }
+    void await_suspend(std::coroutine_handle<>);
+    void await_resume() const;
+
+private:
+
+    uvw::TCPHandle& _tcpHandle;
+    std::unique_ptr<char[]> _data;
+    std::size_t _length;
+
     std::exception_ptr _exception;
 };

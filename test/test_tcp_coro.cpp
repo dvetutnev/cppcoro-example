@@ -193,3 +193,72 @@ TEST(TCPCoro, readError) {
 
     ASSERT_TRUE(isThrown);
 }
+
+
+TEST(TCPCoro, write) {
+    auto loop = uvw::Loop::create();
+    auto listener = loop->resource<uvw::TCPHandle>();
+
+    uvw::DataEvent dataEvent{nullptr, 0};
+    auto onConnect = [&](const auto&, uvw::TCPHandle& listener) {
+        auto client = listener.loop().resource<uvw::TCPHandle>();
+
+        client->once<uvw::DataEvent>([&](uvw::DataEvent& event, uvw::TCPHandle& client) {
+            dataEvent = std::move(event);
+            client.close();
+        });
+
+        listener.accept(*client);
+
+        auto data = std::unique_ptr<char[]>{ new char[5] {'d', 'a', 't', 'a', 0} };
+        client->read();
+
+        listener.close();
+    };
+    listener->once<uvw::ListenEvent>(onConnect);
+
+    listener->bind("127.0.0.1", 8791);
+    listener->listen();
+
+
+    TCPCoro socket{*loop};
+    auto task = [&]() -> cppcoro::task<> {
+        co_await socket.connect("127.0.0.1", 8791);
+        auto data = std::unique_ptr<char[]>{ new char[5] {'d', 'a', 't', 'a', 0} };
+        co_await socket.write(std::move(data), 5);
+    };
+
+    cppcoro::sync_wait(cppcoro::when_all_ready(
+                           task(),
+                           run_loop(*loop)));
+
+    ASSERT_TRUE(dataEvent.data);
+    ASSERT_STREQ(dataEvent.data.get(), "data");
+    ASSERT_EQ(dataEvent.length, 5);
+}
+
+
+TEST(TCPCoro, writeError) {
+    auto loop = uvw::Loop::create();
+    auto listener = loop->resource<uvw::TCPHandle>();
+
+    TCPCoro socket{*loop};
+    bool isThrown = false;
+    auto task = [&]() -> cppcoro::task<> {
+        try {
+            co_await socket.connect("127.0.0.1", 8791);
+            co_await socket.write(std::make_unique<char[]>('T'), 1);
+        }
+        catch (const TCPCoroException& ex) {
+            isThrown = true;
+            std::cout << ex.what() << std::endl;
+        }
+    };
+
+
+    cppcoro::sync_wait(cppcoro::when_all_ready(
+                           task(),
+                           run_loop(*loop)));
+
+    ASSERT_TRUE(isThrown);
+}

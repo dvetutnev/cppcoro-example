@@ -1,4 +1,5 @@
 #include "tcp_coro.h"
+#include <cassert>
 
 
 TCPCoro::TCPCoro(uvw::Loop& loop)
@@ -27,6 +28,9 @@ TCPCoro::AwaiterRead TCPCoro::read() {
     return AwaiterRead{*_tcpHandle};
 }
 
+TCPCoro::AwaiterWrite TCPCoro::write(std::unique_ptr<char[]> data, std::size_t length) {
+    return AwaiterWrite{*_tcpHandle, std::move(data), length};
+}
 
 
 TCPCoro::AwaiterConnect::AwaiterConnect(uvw::TCPHandle& tcpHandle, std::string_view ip, unsigned int port)
@@ -120,3 +124,34 @@ std::tuple<std::unique_ptr<char[]>, std::size_t> TCPCoro::AwaiterRead::await_res
     return std::make_tuple(std::move(_event.data), _event.length);
 }
 
+
+
+TCPCoro::AwaiterWrite::AwaiterWrite(uvw::TCPHandle& tcpHandle, std::unique_ptr<char[]> data, std::size_t length)
+    :
+      _tcpHandle{tcpHandle},
+
+      _data{std::move(data)},
+      _length{length}
+{}
+
+
+void TCPCoro::AwaiterWrite::await_suspend(std::coroutine_handle<> coro) {
+    _tcpHandle.once<uvw::WriteEvent>([coro](const auto&, const auto&) {
+        coro.resume();
+    });
+
+    _tcpHandle.once<uvw::ErrorEvent>([this, coro](const uvw::ErrorEvent& ev, const auto&) {
+        _exception = std::make_exception_ptr(TCPCoroException{ev});
+        coro.resume();
+    });
+
+    assert(_length <= std::numeric_limits<unsigned int>::max());
+    _tcpHandle.write(std::move(_data), _length);
+}
+
+
+void TCPCoro::AwaiterWrite::await_resume() const {
+    if (_exception) {
+        std::rethrow_exception(_exception);
+    }
+}
