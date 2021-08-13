@@ -27,14 +27,14 @@ public:
     class AwaiterConnect;
     AwaiterConnect connect(std::string_view ip, unsigned int port);
 
+    class AwaiterShutdown;
+    AwaiterShutdown shutdown();
+
     class AwaiterRead;
-    AwaiterRead read(); // std::tuple<std::unique_ptr<char>, unsigned int> data = co_wait socket.read();
+    AwaiterRead read(); // std::tuple<std::unique_ptr<char>, std::size_t> data = co_wait socket.read();
 
     class AwaiterWrite;
     AwaiterWrite write(std::unique_ptr<char> data, unsigned int length);
-
-    class AwaiterShutdown;
-    AwaiterShutdown shutdown();
 
 private:
 
@@ -76,5 +76,24 @@ private:
 
     uvw::TCPHandle& _tcpHandle;
 
+    std::exception_ptr _exception;
+};
+
+
+class TCPCoro::AwaiterRead
+{
+public:
+
+    AwaiterRead(uvw::TCPHandle& tcpHandle);
+
+    constexpr bool await_ready() const noexcept { return false; }
+    void await_suspend(std::coroutine_handle<>);
+    std::tuple<std::unique_ptr<char[]>, std::size_t> await_resume();
+
+private:
+
+    uvw::TCPHandle& _tcpHandle;
+
+    uvw::DataEvent _event;
     std::exception_ptr _exception;
 };
