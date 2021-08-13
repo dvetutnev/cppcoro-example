@@ -157,7 +157,6 @@ TEST(TCPCoro, read) {
         co_return result;
     };
 
-
     auto [result, _] = cppcoro::sync_wait(cppcoro::when_all(
                            task(),
                            run_loop(*loop)));
@@ -167,4 +166,30 @@ TEST(TCPCoro, read) {
     ASSERT_TRUE(data);
     ASSERT_STREQ(data.get(), "data");
     ASSERT_EQ(length, 5);
+}
+
+
+TEST(TCPCoro, readError) {
+    auto loop = uvw::Loop::create();
+    auto listener = loop->resource<uvw::TCPHandle>();
+
+    TCPCoro socket{*loop};
+    bool isThrown = false;
+    auto task = [&]() -> cppcoro::task<> {
+        try {
+            co_await socket.connect("127.0.0.1", 8791);
+            co_await socket.read();
+        }
+        catch (const TCPCoroException& ex) {
+            isThrown = true;
+            std::cout << ex.what() << std::endl;
+        }
+    };
+
+
+    cppcoro::sync_wait(cppcoro::when_all_ready(
+                           task(),
+                           run_loop(*loop)));
+
+    ASSERT_TRUE(isThrown);
 }
