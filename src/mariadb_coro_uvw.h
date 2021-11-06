@@ -1,22 +1,16 @@
 #pragma once
 
 
-#include <string>
+#include "table_result.h"
+
 #include <string_view>
-#include <vector>
 #include <mutex>
 
 #include <cppcoro/task.hpp>
 #include <uvw/loop.h>
 
 
-struct TableResult {
-    /// Number of affected rows.
-    std::uint64_t rowsAffected = 0;
-
-    /// Returned rows.
-    std::vector<std::vector<std::string>> rows{ };
-};
+namespace uvw {
 
 
 class MariaDBCoro
@@ -40,3 +34,6 @@ private:
 
     static std::once_flag _mysqlLibInitFlag;
 };
+
+
+}

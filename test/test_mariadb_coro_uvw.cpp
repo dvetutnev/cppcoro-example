@@ -1,4 +1,4 @@
-#include "mariadb_coro.h"
+#include "mariadb_coro_uvw.h"
 #include "run_loop.h"
 
 #include <cppcoro/sync_wait.hpp>
@@ -11,7 +11,7 @@
 TEST(MariaDBCoro, SHOW_STATUS) {
     auto loop = uvw::Loop::create();
 
-    MariaDBCoro client{ *loop, "127.0.0.1", "root", "password", "cppcoro" };
+    uvw::MariaDBCoro client{ *loop, "127.0.0.1", "root", "password", "cppcoro" };
 
     auto task = [&client]() -> cppcoro::task<TableResult> {
         TableResult result = co_await client.query("SHOW STATUS;");

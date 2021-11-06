@@ -1,4 +1,4 @@
-#include "mariadb_coro.h"
+#include "mariadb_coro_uvw.h"
 
 #include <mysql.h>
 #include <mysqld_error.h>
@@ -15,6 +15,8 @@ using std::suspend_never;
 }
 #endif
 
+
+namespace uvw {
 
 
 std::once_flag MariaDBCoro::_mysqlLibInitFlag;
@@ -155,3 +157,6 @@ cppcoro::task<TableResult> MariaDBCoro::query(std::string_view stmp) {
 
     co_return result;
 }
+
+
+} // namespace uvw
