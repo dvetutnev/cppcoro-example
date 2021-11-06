@@ -10,7 +10,7 @@
 #include <boost/asio/io_context.hpp>
 
 
-namespace uvw {
+namespace asio {
 
 
 class MariaDBCoro
