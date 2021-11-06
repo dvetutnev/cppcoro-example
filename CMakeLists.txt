@@ -27,7 +27,7 @@ add_compile_definitions(
     CPPCORO_COMPILER_SUPPORTS_SYMMETRIC_TRANSFER=1
     __cpp_impl_coroutine=true)
 
-find_package(cppcoro CONFIG REQUIRED)
+find_package(cppcoro REQUIRED)
 find_package(uvw REQUIRED)
 find_package(mariadb-connector-c REQUIRED)
 find_package(GTest REQUIRED)
