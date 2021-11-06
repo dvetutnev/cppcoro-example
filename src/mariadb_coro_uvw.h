@@ -4,7 +4,6 @@
 #include "table_result.h"
 
 #include <string_view>
-#include <mutex>
 
 #include <cppcoro/task.hpp>
 #include <uvw/loop.h>
@@ -31,8 +30,6 @@ private:
     const std::string _user;
     const std::string _password;
     const std::string _dbName;
-
-    static std::once_flag _mysqlLibInitFlag;
 };
 
 

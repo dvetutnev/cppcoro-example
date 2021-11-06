@@ -11,7 +11,7 @@
 TEST(MariaDBCoro, SHOW_STATUS) {
     auto loop = uvw::Loop::create();
 
-    uvw::MariaDBCoro client{ *loop, "127.0.0.1", "root", "password", "cppcoro" };
+    uvw::MariaDBCoro client{ *loop, "127.0.0.1", "root", "password", "" };
 
     auto task = [&client]() -> cppcoro::task<TableResult> {
         TableResult result = co_await client.query("SHOW STATUS;");
