@@ -29,6 +29,7 @@ add_compile_definitions(
 
 find_package(cppcoro REQUIRED)
 find_package(uvw REQUIRED)
+find_package(Boost REQUIRED)
 find_package(mariadb-connector-c REQUIRED)
 find_package(GTest REQUIRED)
 
@@ -42,6 +43,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     cppcoro::cppcoro
     uvw::uvw
+    Boost::boost
     mariadb-connector-c::mariadb-connector-c)
 
 enable_testing()
