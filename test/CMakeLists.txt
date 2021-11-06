@@ -1,6 +1,7 @@
 add_executable(tests
     test_dummy.cpp
     test_mariadb_coro_uvw.cpp
+    test_mariadb_coro_asio.cpp
     test_tcp_coro.cpp)
 
 target_link_libraries(tests
