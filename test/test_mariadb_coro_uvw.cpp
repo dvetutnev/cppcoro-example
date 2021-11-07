@@ -8,7 +8,7 @@
 
 
 
-TEST(MariaDBCoro, SHOW_STATUS) {
+TEST(uvw_MariaDBCoro, SHOW_STATUS) {
     auto loop = uvw::Loop::create();
 
     uvw::MariaDBCoro client{ *loop, "127.0.0.1", "root", "password", "" };

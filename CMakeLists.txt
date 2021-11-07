@@ -23,7 +23,10 @@ conan_cmake_install(
     SETTINGS ${settings})
 
 
-add_compile_definitions(__cpp_impl_coroutine=201902)
+add_compile_definitions(
+    __cpp_impl_coroutine=201902
+    BOOST_ASIO_HAS_CO_AWAIT=1)
+
 
 find_package(cppcoro REQUIRED)
 find_package(uvw REQUIRED)
@@ -36,6 +39,7 @@ include_directories(src)
 add_library(${PROJECT_NAME}
     src/mariadb_init.cpp
     src/mariadb_coro_uvw.cpp
+    src/mariadb_coro_asio.cpp
     src/tcp_coro.cpp)
 
 target_link_libraries(${PROJECT_NAME}
