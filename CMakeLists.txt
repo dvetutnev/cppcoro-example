@@ -23,9 +23,7 @@ conan_cmake_install(
     SETTINGS ${settings})
 
 
-add_compile_definitions(
-    CPPCORO_COMPILER_SUPPORTS_SYMMETRIC_TRANSFER=1
-    __cpp_impl_coroutine=true)
+add_compile_definitions(__cpp_impl_coroutine=201902)
 
 find_package(cppcoro REQUIRED)
 find_package(uvw REQUIRED)
