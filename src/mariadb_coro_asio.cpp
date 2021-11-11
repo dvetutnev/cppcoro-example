@@ -22,50 +22,36 @@ namespace asio {
 namespace {
 
 
-boost::asio::awaitable<void> poll(boost::asio::io_context&, MYSQL& mysql) {
+boost::asio::awaitable<void> poll(boost::asio::io_context& ioContext, MYSQL& mysql, int status) {
+    auto nativeHandle = ::mysql_get_socket(&mysql);
+
+    using tcp = boost::asio::ip::tcp;
+    tcp::socket socket{ioContext, tcp::v4(), nativeHandle};
+
+
+    auto waitMode = [](int status) -> tcp::socket::wait_type {
+        if (status & MYSQL_WAIT_READ) {
+            return tcp::socket::wait_read;
+        }
+        else if (status & MYSQL_WAIT_WRITE) {
+            return tcp::socket::wait_write;
+        }
+        else {
+            return tcp::socket::wait_error;
+        }
+    };
+
+    co_await socket.async_wait(waitMode(status), boost::asio::use_awaitable);
+
     co_return;
 }
 
-/*
-struct Awaiter
-{
-    boost::asio::io_context& _ioContext;
-    MYSQL& _mysql;
-    int _status;
-
-    constexpr bool await_ready() const noexcept { return false; }
-
-    void await_suspend(std::coroutine_handle<> coro) {
-        auto nativeHandle = ::mysql_get_socket(&_mysql);
-        boost::asio::ip::tcp::socket socket{_ioContext, boost::asio::ip::tcp::v4(), nativeHandle};
-        auto poll = _loop.resource<uvw::PollHandle>(sock);
-
-        poll->once<uvw::PollEvent>([coro](const auto&, uvw::PollHandle& poll) {
-            poll.stop();
-            poll.close();
-
-            coro.resume();
-        });
-
-        assert(_status != 0);
-        using Flag = uvw::Flags<uvw::PollHandle::Event>;
-        auto flags =
-                (_status & MYSQL_WAIT_READ   ? Flag{uvw::PollHandle::Event::READABLE}    : Flag{}) |
-                (_status & MYSQL_WAIT_WRITE  ? Flag{uvw::PollHandle::Event::WRITABLE}    : Flag{}) |
-                (_status & MYSQL_WAIT_EXCEPT ? Flag{uvw::PollHandle::Event::PRIORITIZED} : Flag{});
-
-        poll->start(flags);
-    }
-
-    constexpr void await_resume() const noexcept {}
-};
-*/
 
 } // Anonymous namespace
 
 
-cppcoro::task<TableResult> MariaDBCoro::query(std::string_view stmp) {
-/*    int err, status;
+boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
+    int err, status;
     MYSQL mysql, *ret;
 
     ::mysql_init(&mysql);
@@ -73,13 +59,14 @@ cppcoro::task<TableResult> MariaDBCoro::query(std::string_view stmp) {
 
     status = ::mysql_real_connect_start(&ret, &mysql, _host.c_str(), _user.c_str(), _password.c_str(), _dbName.c_str(), 0, nullptr, 0);
     while (status) {
-        co_await Awaiter{_loop, mysql, status};
+        co_await poll(_ioContext, mysql, status);
+        //co_await a;
         status = ::mysql_real_connect_cont(&ret, &mysql, status);
     }
     if (!ret) {
         throw std::runtime_error{::mysql_error(&mysql)};
     }
-
+/*
     status = ::mysql_real_query_start(&err, &mysql, stmp.data(), stmp.size());
     while (status) {
         co_await Awaiter{_loop, mysql, status};

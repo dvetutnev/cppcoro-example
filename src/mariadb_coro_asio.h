@@ -6,8 +6,8 @@
 
 #include <string_view>
 
-#include <cppcoro/task.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/awaitable.hpp>
 
 
 namespace asio {
@@ -22,7 +22,7 @@ public:
                 std::string_view password,
                 std::string_view dbName);
 
-    cppcoro::task<TableResult> query(std::string_view);
+    boost::asio::awaitable<TableResult> query(std::string_view);
 
 private:
     boost::asio::io_context& _ioContext;
