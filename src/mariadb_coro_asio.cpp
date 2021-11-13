@@ -5,8 +5,6 @@
 
 #include <boost/asio.hpp>
 
-#include <iostream>
-
 
 #if defined(__clang__)
 namespace std::experimental {
@@ -42,7 +40,6 @@ auto waitMode = [](int status) -> tcp::socket::wait_type {
 
 boost::asio::awaitable<void> poll(boost::asio::io_context& ioContext, MYSQL& mysql, int status) {
     auto nativeHandle = ::mysql_get_socket(&mysql);
-
     tcp::socket socket{ioContext, tcp::v4(), nativeHandle};
 
     co_await socket.async_wait(waitMode(status), boost::asio::use_awaitable);
@@ -64,19 +61,17 @@ boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
     ::mysql_optionsv(&mysql, MYSQL_OPT_NONBLOCK, 0);
 
     status = ::mysql_real_connect_start(&ret, &mysql, _host.c_str(), _user.c_str(), _password.c_str(), _dbName.c_str(), 0, nullptr, 0);
-    std::cout << "init status: " << status << std::endl;
     while (status) {
-        std::cout << "while status: " << status << std::endl;
         co_await poll(_ioContext, mysql, status);
         status = ::mysql_real_connect_cont(&ret, &mysql, status);
     }
     if (!ret) {
         throw std::runtime_error{::mysql_error(&mysql)};
     }
-/*
+
     status = ::mysql_real_query_start(&err, &mysql, stmp.data(), stmp.size());
     while (status) {
-        co_await Awaiter{_loop, mysql, status};
+        co_await poll(_ioContext, mysql, status);
         status = ::mysql_real_query_cont(&err, &mysql, status);
     }
     if (err) {
@@ -88,8 +83,8 @@ boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
     if (!mysqlResult) {
         throw std::runtime_error{::mysql_error(&mysql)};
     }
-*/
-    TableResult result;/*
+
+    TableResult result;
     unsigned int numFields = ::mysql_num_fields(mysqlResult);
 
     for (;;) {
@@ -97,7 +92,7 @@ boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
 
         status = ::mysql_fetch_row_start(&mysqlRow, mysqlResult);
         while (status) {
-            co_await Awaiter{_loop, mysql, status};
+            co_await poll(_ioContext, mysql, status);
             status = ::mysql_fetch_row_cont(&mysqlRow, mysqlResult, status);
         }
 
@@ -126,7 +121,7 @@ boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
 
     ::mysql_free_result(mysqlResult);
     ::mysql_close(&mysql);
-*/
+
     co_return result;
 }
 
