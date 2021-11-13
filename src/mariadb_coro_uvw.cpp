@@ -31,8 +31,8 @@ struct Awaiter
     constexpr bool await_ready() const noexcept { return false; }
 
     void await_suspend(std::coroutine_handle<> coro) {
-        auto sock = ::mysql_get_socket(&_mysql);
-        auto poll = _loop.resource<uvw::PollHandle>(sock);
+        auto nativeHandle = ::mysql_get_socket(&_mysql);
+        auto poll = _loop.resource<uvw::PollHandle>(nativeHandle);
 
         poll->once<uvw::PollEvent>([coro](const auto&, uvw::PollHandle& poll) {
             poll.stop();
