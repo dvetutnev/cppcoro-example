@@ -5,6 +5,8 @@
 
 #include <boost/asio.hpp>
 
+#include <iostream>
+
 
 #if defined(__clang__)
 namespace std::experimental {
@@ -22,26 +24,30 @@ namespace asio {
 namespace {
 
 
+using tcp = boost::asio::ip::tcp;
+
+
+auto waitMode = [](int status) -> tcp::socket::wait_type {
+    if (status & MYSQL_WAIT_READ) {
+        return tcp::socket::wait_read;
+    }
+    else if (status & MYSQL_WAIT_WRITE) {
+        return tcp::socket::wait_write;
+    }
+    else {
+        return tcp::socket::wait_error;
+    }
+};
+
+
 boost::asio::awaitable<void> poll(boost::asio::io_context& ioContext, MYSQL& mysql, int status) {
     auto nativeHandle = ::mysql_get_socket(&mysql);
 
-    using tcp = boost::asio::ip::tcp;
     tcp::socket socket{ioContext, tcp::v4(), nativeHandle};
 
-
-    auto waitMode = [](int status) -> tcp::socket::wait_type {
-        if (status & MYSQL_WAIT_READ) {
-            return tcp::socket::wait_read;
-        }
-        else if (status & MYSQL_WAIT_WRITE) {
-            return tcp::socket::wait_write;
-        }
-        else {
-            return tcp::socket::wait_error;
-        }
-    };
-
     co_await socket.async_wait(waitMode(status), boost::asio::use_awaitable);
+
+    socket.release();
 
     co_return;
 }
@@ -58,9 +64,10 @@ boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
     ::mysql_optionsv(&mysql, MYSQL_OPT_NONBLOCK, 0);
 
     status = ::mysql_real_connect_start(&ret, &mysql, _host.c_str(), _user.c_str(), _password.c_str(), _dbName.c_str(), 0, nullptr, 0);
+    std::cout << "init status: " << status << std::endl;
     while (status) {
+        std::cout << "while status: " << status << std::endl;
         co_await poll(_ioContext, mysql, status);
-        //co_await a;
         status = ::mysql_real_connect_cont(&ret, &mysql, status);
     }
     if (!ret) {
