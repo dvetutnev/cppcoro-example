@@ -53,7 +53,7 @@ boost::asio::awaitable<void> poll(boost::asio::io_context& ioContext, MYSQL& mys
 } // Anonymous namespace
 
 
-boost::asio::awaitable<TableResult> MariaDBCoro::query(std::string_view stmp) {
+boost::asio::awaitable<TableResult> MariaDBCoro::queryImpl(std::string_view stmp) {
     int err, status;
     MYSQL mysql, *ret;
 
