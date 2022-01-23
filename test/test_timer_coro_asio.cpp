@@ -15,19 +15,28 @@ using std::suspend_never;
 using namespace std::chrono_literals;
 
 
+boost::asio::awaitable<void> timer(std::chrono::milliseconds duration) {
+    auto executor = co_await boost::asio::this_coro::executor;
+    boost::asio::system_timer timer{executor};
+    timer.expires_after(duration);
+
+    co_await timer.async_wait(boost::asio::use_awaitable);
+};
 
 
-TEST(asio_deadline_timer, _) {
-    boost::asio::io_context ioContext;
 
-    auto start = std::chrono::system_clock::now();
-
-    auto timer = [&ioContext](std::chrono::milliseconds duration) -> boost::asio::awaitable<void> {
-        boost::asio::system_timer timer{ioContext};
+TEST(asio_deadline_timer, _) {/*
+    auto timer = [](std::chrono::milliseconds duration) -> boost::asio::awaitable<void> {
+        auto executor = co_await boost::asio::this_coro::executor;
+        boost::asio::system_timer timer{executor};
         timer.expires_after(duration);
 
         co_await timer.async_wait(boost::asio::use_awaitable);
     };
+*/
+    boost::asio::io_context ioContext;
+
+    auto start = std::chrono::system_clock::now();
 
     boost::asio::co_spawn(ioContext, timer(150ms), boost::asio::detached);
     ioContext.run();
