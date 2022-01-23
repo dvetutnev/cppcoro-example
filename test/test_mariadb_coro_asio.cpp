@@ -20,7 +20,11 @@ TEST(asio_MariaDBCoro, SHOW_STATUS) {
     asio::MariaDBCoro client{ ioContext, "127.0.0.1", "root", "password", "" };
 
     auto task = [&client]() -> boost::asio::awaitable<TableResult> {
-        TableResult result = co_await client.query("SHOW STATUS;");
+        // Send query, wait until buffer overflow
+        boost::asio::awaitable<TableResult> query = co_await client.query("SHOW STATUS;");
+
+        // Wait result of sent query
+        TableResult result = co_await std::move(query); // Need R-value
         co_return result;
     };
 
