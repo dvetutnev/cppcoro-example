@@ -24,7 +24,7 @@ conan_cmake_install(
 
 
 add_compile_definitions(
-    __cpp_impl_coroutine=201902
+#   __cpp_impl_coroutine=201902
     BOOST_ASIO_HAS_CO_AWAIT=1)
 
 
