@@ -6,16 +6,6 @@
 #include <boost/asio.hpp>
 
 
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
-
-
 namespace asio {
 
 

@@ -5,16 +5,6 @@
 #include <uvw/loop.h>
 
 
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
-
-
 inline cppcoro::task<> run_loop(uvw::Loop& loop) {
     loop.run();
     co_return;

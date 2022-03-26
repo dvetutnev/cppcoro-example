@@ -1,10 +1,5 @@
 #pragma once
 
-// QtCreator
-#ifndef __cpp_impl_coroutine
-#define __cpp_impl_coroutine 201902
-#endif
-
 
 #include "table_result.h"
 #include "mariadb_init.h"
@@ -13,16 +8,6 @@
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/awaitable.hpp>
-
-
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
 
 
 namespace asio {

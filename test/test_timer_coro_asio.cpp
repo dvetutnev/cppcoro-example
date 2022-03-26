@@ -2,16 +2,6 @@
 #include <boost/asio.hpp>
 
 
-#if defined(__clang__)
-namespace std::experimental {
-using std::coroutine_traits;
-using std::coroutine_handle;
-using std::suspend_always;
-using std::suspend_never;
-}
-#endif
-
-
 using namespace std::chrono_literals;
 
 
@@ -25,15 +15,7 @@ boost::asio::awaitable<void> timer(std::chrono::milliseconds duration) {
 
 
 
-TEST(asio_deadline_timer, _) {/*
-    auto timer = [](std::chrono::milliseconds duration) -> boost::asio::awaitable<void> {
-        auto executor = co_await boost::asio::this_coro::executor;
-        boost::asio::system_timer timer{executor};
-        timer.expires_after(duration);
-
-        co_await timer.async_wait(boost::asio::use_awaitable);
-    };
-*/
+TEST(asio_deadline_timer, _) {
     boost::asio::io_context ioContext;
 
     auto start = std::chrono::system_clock::now();
