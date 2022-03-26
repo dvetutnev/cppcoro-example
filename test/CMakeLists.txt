@@ -9,5 +9,5 @@ target_link_libraries(tests
     ${PROJECT_NAME}
     GTest::gmock_main)
 
-add_test(NAME tests COMMAND tests)
-
+include(GoogleTest)
+gtest_discover_tests(tests)
