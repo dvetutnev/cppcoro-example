@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 
-TEST(asio_MariaDBCoro, SHOW_STATUS) {
+TEST(asio_MariaDBCoro, DISABLED_SHOW_STATUS) {
     boost::asio::io_context ioContext;
 
     asio::MariaDBCoro client{ ioContext, "127.0.0.1", "root", "password", "" };
