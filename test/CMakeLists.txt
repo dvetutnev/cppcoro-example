@@ -4,7 +4,8 @@ add_executable(tests
     test_mariadb_coro_asio.cpp
     test_tcp_coro.cpp
     test_timer_coro_asio.cpp
-    test_schedule.cpp)
+    test_schedule.cpp
+    test_simple_event_asio.cpp)
 
 target_link_libraries(tests
     ${PROJECT_NAME}

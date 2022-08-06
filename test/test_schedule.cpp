@@ -26,7 +26,6 @@ TEST(schedule_asio, _) {
             co_return;
     };
 
-
     auto task = [&]() -> boost::asio::awaitable<void> {
             using namespace boost::asio::experimental::awaitable_operators;
             co_await(process() && check());
