@@ -1,9 +1,9 @@
 [requires]
-boost/1.78.0
+boost/1.79.0
 andreasbuhr-cppcoro/cci.20210113
 uvw/2.9.0
 mariadb-connector-c/3.1.12
-gtest/1.11.0
+gtest/1.12.1
 
 [options]
 boost:with_stacktrace_backtrace=False
